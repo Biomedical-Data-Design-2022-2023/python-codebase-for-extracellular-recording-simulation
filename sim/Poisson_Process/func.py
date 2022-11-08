@@ -69,13 +69,3 @@ def nonhomo_poisson_process(Lamb: NDArray[np.float64], srate: float) -> NDArray[
         intervals.pop(0) 
 
     return train
-
-if __name__ == "__main__":
-    Lamb = np.ones(10*10000)*10
-    # Lamb[:5*10000] += 17
-    x = nonhomo_poisson_process(Lamb,10000)
-
-    plt.plot(x)
-    plt.show()
-
-    print(np.sum(np.array(x)==1))
