@@ -4,12 +4,15 @@ import neuron
 import LFPy
 import os
 import json
-import matplotlib.pylab as plt
+import matplotlib.pyplot as plt
 from pprint import pprint
 import sys
+import pickle as pkl
 
 import MEArec as mr
 import MEAutility as mu
+
+from utils import create_empty_recordings, create_empty_templates
 
 # Function to load Allen cells in LFPy, intracellular simulation
 def return_allen_cell(cell_model_folder, dt=2**-5, start_T=0, end_T=1):    
@@ -66,63 +69,26 @@ def return_allen_cell(cell_model_folder, dt=2**-5, start_T=0, end_T=1):
 
     return cell
 
-def plot_cell_projections(cell):
-    fig = plt.figure()
-    ax_xy = fig.add_subplot(2,2,1)
-    ax_xz = fig.add_subplot(2,2,2)    
-    ax_yz = fig.add_subplot(2,2,3)    
-    
-    for i, (x,y,z,d) in enumerate(zip(cell.x, cell.y, cell.z,cell.d)):
-        if i in cell.get_idx('soma'):
-            ax_xy.plot(x, y, color='k', lw=d)
-            ax_xz.plot(x, z, color='k', lw=d)
-            ax_yz.plot(y, z, color='k', lw=d)
-        else:
-            ax_xy.plot(x, y,lw=d)
-            ax_xz.plot(x, z,lw=d)
-            ax_yz.plot(y, z,lw=d)
-        
-    ax_xy.axis('equal')
-    ax_xz.axis('equal')
-    ax_yz.axis('equal')
-    ax_xy.set_xlabel('x')
-    ax_xy.set_ylabel('y')
-    ax_xz.set_xlabel('x')
-    ax_xz.set_ylabel('z')
-    ax_yz.set_xlabel('y')
-    ax_yz.set_ylabel('z')
+def generate_template(template_params, cell_model_path, cell_sim_model_path, template_path):
+    """ wrapper to call mr.TemplateGenerator() with specifically Allen neuron model
 
-    return fig
+    Args:
+        template_params (dict): parameters for generating templates
+        cell_model_path (path): path to the RAW Allen cell models 
+        cell_sim_model_path (path): path to save the simulated cell models
+        template_path (path): path to save the generated template .h5 file
+    """
 
-def generate_template():
-
-    template_params = mr.get_default_templates_params()
-    template_params['seed'] = 0
     pprint(template_params)
     
-    ######## simulate extracellular action potentials
-    # 3D rotate cells, generate templates (random rotation, location)
-    template_params['rot'] = '3drot'
-    # target spike numbers threshold
-    template_params['n'] = 10
-
-    # MEA probe
-    print(mu.return_mea_list())
-    template_params['probe'] = 'Neuropixels2-64'
-
-    cell_sim_model_path = './cell_sim_model_'+template_params['probe']
-    process_path = './process_'+template_params['probe']
-
     ########## generate EAPs for all cell models and assembling a template library
-    cell_folder = './morphologies/mouse_VISp_L5/'
-    
     cell_types = ['spiny','sparsely_spiny','aspiny']
 
-    spiny_cell_models = [p for p in Path('./morphologies/mouse_VISp_L5/spiny/').iterdir()]
+    spiny_cell_models = [p for p in Path().joinpath(cell_model_path,'spiny').iterdir()]
     print(spiny_cell_models)
-    sparsely_spiny_cell_models = [p for p in Path('./morphologies/mouse_VISp_L5/sparsely_spiny/').iterdir()]
+    sparsely_spiny_cell_models = [p for p in Path().joinpath(cell_model_path,'sparsely_spiny').iterdir()]
     print(sparsely_spiny_cell_models)
-    aspiny_cell_models = [p for p in Path('./morphologies/mouse_VISp_L5/aspiny/').iterdir()]
+    aspiny_cell_models = [p for p in Path().joinpath(cell_model_path,'aspiny').iterdir()]
     print(aspiny_cell_models)
 
     # init
@@ -135,7 +101,7 @@ def generate_template():
         print("Cell", cell, "is", cell_type)
 
         try:
-            eaps, locs, rots = mr.simulate_templates_one_cell(cell_folder+cell_type+'/'+cell.name, intra_save_folder=cell_sim_model_path, 
+            eaps, locs, rots = mr.simulate_templates_one_cell(cell_model_path / cell_type / cell.name, intra_save_folder=cell_sim_model_path, 
                                                         params=template_params, verbose=True, 
                                                         custom_return_cell_function=return_allen_cell)
         except SystemExit:
@@ -162,7 +128,7 @@ def generate_template():
         print("Cell", cell, "is", cell_type)
         
         try:
-            eaps, locs, rots = mr.simulate_templates_one_cell(cell_folder+cell_type+'/'+cell.name, intra_save_folder=cell_sim_model_path, 
+            eaps, locs, rots = mr.simulate_templates_one_cell(cell_model_path / cell_type / cell.name, intra_save_folder=cell_sim_model_path, 
                                                         params=template_params, verbose=True, 
                                                         custom_return_cell_function=return_allen_cell)
         except SystemExit:
@@ -188,7 +154,7 @@ def generate_template():
         print("Cell", cell, "is", cell_type)
         
         try:
-            eaps, locs, rots = mr.simulate_templates_one_cell(cell_folder+cell_type+'/'+cell.name, intra_save_folder=cell_sim_model_path, 
+            eaps, locs, rots = mr.simulate_templates_one_cell(cell_model_path / cell_type / cell.name, intra_save_folder=cell_sim_model_path, 
                                                         params=template_params, verbose=True, 
                                                         custom_return_cell_function=return_allen_cell)
         except SystemExit:
@@ -222,37 +188,19 @@ def generate_template():
     info['params'] = template_params
     info['electrodes'] = mu.return_mea_info(template_params['probe'])
     tempgen = mr.TemplateGenerator(temp_dict=temp_dict, info=info)
-    # mr.plot_templates(tempgen)
-    mr.save_template_generator(tempgen=tempgen, filename=process_path+'/templates_allen.h5')
+    mr.save_template_generator(tempgen=tempgen, filename=(template_path / 'templates.h5').as_posix())
 
+def generate_recording(rec_params, template_path, recording_path):
+    """ wrapper to call mr.gen_recordings() with specifically Allen neuron model
 
-def generate_recording():
-    process_path = './process_Neuropixels2-64'
+    Args:
+        rec_params (dict): parameters for generating recordings
+        template_path (Path): path to templates
+        recording_path (Path): path to save the generated recordings .h5 file
+    """    
 
-    cell_types = ['spiny','sparsely_spiny','aspiny']
-    ################# generate recordings
-    rec_params = mr.get_default_recordings_params()
     pprint(rec_params)
-    # tell excitatory and inhibitory
-    rec_params['cell_types'] = {'excitatory': [cell_types[0],cell_types[1]], 'inhibitory': [cell_types[2]]}
-    # simulate params: 30 second, excitatory,  inhibitory, um minimium distance between cells, uV minimium amplitude 
-    rec_params['spiketrains']['duration'] = 60
-    rec_params['spiketrains']['n_exc'] = 40 # less than sum of templates
-    rec_params['spiketrains']['n_inh'] = 20
-    rec_params['templates']['min_dist'] = 1
-    rec_params['templates']['min_amp'] = 30
 
-    recgen = mr.gen_recordings(params=rec_params, templates=process_path+'/templates_allen.h5', verbose=True)
+    recgen = mr.gen_recordings(params=rec_params, templates=(template_path / 'templates.h5').as_posix(), verbose=2,tmp_folder='./')
 
-    # ax_st = mr.plot_rasters(recgen.spiketrains)
-    # ax_temp = mr.plot_templates(recgen)
-    # ax_rec = mr.plot_recordings(recgen, start_time=0, end_time=5, overlay_templates=True, lw=0.5)
-
-    mr.save_recording_generator(recgen=recgen, filename=process_path+'/recordings_allen.h5')
-
-    print('Done!')
-
-if __name__ == '__main__':
-    # generate_template()
-
-    generate_recording()
+    mr.save_recording_generator(recgen=recgen, filename=(recording_path / 'recordings.h5').as_posix())
