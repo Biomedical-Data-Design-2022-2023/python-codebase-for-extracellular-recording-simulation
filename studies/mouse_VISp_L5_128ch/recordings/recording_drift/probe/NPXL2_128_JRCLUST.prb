@@ -1,0 +1,16 @@
+
+
+channels = 1:128;
+
+nChans = numel(channels);
+geometry = zeros(nChans, 2);
+
+% x pos
+geometry(1:64,1) = 0;
+geometry(65:end,1) = 32;
+
+% y pos
+geometry(1:64,2) = [0:63]*15;
+geometry(65:end,2) = [0:63]*15;
+
+pad = [12 12]; %in micrometers, height x width
