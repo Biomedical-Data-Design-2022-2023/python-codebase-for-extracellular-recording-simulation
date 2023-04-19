@@ -45,7 +45,7 @@
   - *studyname2*
     - ...
 
-## Compariing results
+## Comparing results
 
 In general, we can have 2 categories of comparing results: spike time comparing and template waveform comparing.
 
@@ -55,8 +55,8 @@ In general, we can have 2 categories of comparing results: spike time comparing 
 - `ccg_matrix()` (from `pykilosort`)
 
 ### Template waveform comparing
-- cosine_similarity
-- SimScore (svd, similar to `pykilosort`)
+- `cosine_similarity_matrix()`
+- `simscore_matrix()` (svd, similar to `pykilosort`)
 
 ## About my study *mouse_VISp_L5_128ch*
 
