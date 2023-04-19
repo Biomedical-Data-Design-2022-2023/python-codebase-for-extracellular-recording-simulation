@@ -1,0 +1,204 @@
+{
+  "biophys": [
+    {
+      "model_type": "Biophysical - perisomatic",
+      "model_file": [
+        "manifest.json",
+        "fit_parameters.json"
+      ]
+    }
+  ],
+  "runs": [
+    {
+      "sweeps_by_type": {
+        "Long Square": [
+          53,
+          26,
+          32,
+          45,
+          56,
+          49,
+          25,
+          29,
+          39,
+          36,
+          31,
+          34,
+          30,
+          54,
+          41,
+          42,
+          24,
+          50,
+          52,
+          40,
+          55,
+          46,
+          48,
+          27,
+          28,
+          37,
+          57,
+          43,
+          35,
+          47
+        ],
+        "Short Square": [
+          11,
+          16,
+          19,
+          14,
+          15,
+          22,
+          12,
+          10,
+          13,
+          9,
+          20,
+          7,
+          8,
+          17,
+          18
+        ],
+        "Noise 1": [
+          70,
+          66,
+          72,
+          68
+        ],
+        "Noise 2": [
+          67,
+          71,
+          73,
+          69
+        ],
+        "Ramp": [
+          5,
+          6,
+          4
+        ],
+        "Square - 0.5ms Subthreshold": [
+          75,
+          76
+        ]
+      },
+      "sweeps": [
+        53,
+        11,
+        26,
+        16,
+        1,
+        19,
+        14,
+        32,
+        15,
+        77,
+        45,
+        22,
+        78,
+        12,
+        56,
+        49,
+        10,
+        25,
+        2,
+        29,
+        39,
+        70,
+        3,
+        0,
+        36,
+        13,
+        31,
+        67,
+        34,
+        9,
+        30,
+        5,
+        54,
+        41,
+        42,
+        6,
+        24,
+        75,
+        50,
+        20,
+        52,
+        7,
+        79,
+        4,
+        66,
+        8,
+        71,
+        40,
+        73,
+        55,
+        46,
+        48,
+        27,
+        72,
+        28,
+        76,
+        17,
+        37,
+        57,
+        18,
+        43,
+        69,
+        68,
+        35,
+        47
+      ]
+    }
+  ],
+  "neuron": [
+    {
+      "hoc": [
+        "stdgui.hoc",
+        "import3d.hoc",
+        "cell.hoc"
+      ]
+    }
+  ],
+  "manifest": [
+    {
+      "type": "dir",
+      "spec": ".",
+      "key": "BASEDIR"
+    },
+    {
+      "type": "dir",
+      "spec": "work",
+      "key": "WORKDIR",
+      "parent": "BASEDIR"
+    },
+    {
+      "type": "file",
+      "spec": "reconstruction.swc",
+      "key": "MORPHOLOGY"
+    },
+    {
+      "type": "file",
+      "spec": "reconstruction.marker",
+      "key": "MARKER"
+    },
+    {
+      "type": "dir",
+      "spec": "modfiles",
+      "key": "MODFILE_DIR"
+    },
+    {
+      "type": "file",
+      "format": "NWB",
+      "spec": "330080911_ephys.nwb",
+      "key": "stimulus_path"
+    },
+    {
+      "parent_key": "WORKDIR",
+      "type": "file",
+      "format": "NWB",
+      "spec": "330080911_ephys.nwb",
+      "key": "output_path"
+    }
+  ]
+}
