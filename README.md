@@ -74,10 +74,10 @@ Algorithms:
 
 Generated recordings (simulated datasets):
 
-|Condition|recording_toy|recording_onlydrift_slow|recording_onlydrift_fast|recording_onlydrift_slowANDfast|recording_drift|
-|:-:|:-:|:-:|:-:|:-:|:-:|
-|Jitter|$\surd$|$\surd$|$\surd$|$\surd$|$\surd$|
-|Shape modulation|$\times$|$\times$|$\times$|$\times$|$\surd$|
-|Bursting|$\surd$|$\surd$|$\surd$|$\surd$|$\surd$|
-|Noise|distance-correlated|distance-correlated|distance-correlated|distance-correlated|distance-correlated|
-|Drifting|$\times$|slow|fast|slow & fast|slow & fast|
+|Condition|recording_toy|recording_onlydrift_slow|recording_onlydrift_fast|recording_drift|
+|:-:|:-:|:-:|:-:|:-:|
+|Jitter|$\surd$|$\surd$|$\surd$|$\surd$|
+|Shape modulation|$\times$|$\times$|$\times$|$\surd$|
+|Bursting|$\surd$|$\surd$|$\surd$|$\surd$|
+|Noise|distance-correlated|distance-correlated|distance-correlated|distance-correlated|
+|Drifting|$\times$|slow|fast|slow & fast|
