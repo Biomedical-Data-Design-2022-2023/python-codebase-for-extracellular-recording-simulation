@@ -1,0 +1,270 @@
+{
+  "biophys": [
+    {
+      "model_type": "Biophysical - perisomatic",
+      "model_file": [
+        "manifest.json",
+        "fit_parameters.json"
+      ]
+    }
+  ],
+  "runs": [
+    {
+      "sweeps_by_type": {
+        "Short Square - Triple": [
+          95,
+          89,
+          96,
+          87,
+          94,
+          86,
+          88,
+          91,
+          80,
+          98,
+          92,
+          79,
+          81,
+          84,
+          83,
+          93,
+          85,
+          99,
+          97
+        ],
+        "Square - 2s Suprathreshold": [
+          73,
+          68,
+          71,
+          72,
+          74,
+          67,
+          66,
+          64,
+          65,
+          75,
+          69,
+          70
+        ],
+        "Long Square": [
+          27,
+          26,
+          38,
+          51,
+          32,
+          43,
+          41,
+          39,
+          40,
+          36,
+          49,
+          30,
+          47,
+          44,
+          48,
+          45,
+          37,
+          52,
+          35,
+          33,
+          34,
+          42,
+          29,
+          50,
+          28
+        ],
+        "Short Square": [
+          18,
+          23,
+          10,
+          14,
+          24,
+          19,
+          25,
+          17,
+          22,
+          7,
+          21,
+          20,
+          8,
+          16,
+          13,
+          12,
+          15,
+          11,
+          9
+        ],
+        "Noise 2": [
+          58,
+          56,
+          60
+        ],
+        "Ramp": [
+          4,
+          6,
+          5
+        ],
+        "Noise 1": [
+          59,
+          57,
+          53
+        ],
+        "Square - 0.5ms Subthreshold": [
+          62,
+          61
+        ],
+        "Ramp to Rheobase": [
+          78,
+          77
+        ]
+      },
+      "sweeps": [
+        95,
+        73,
+        89,
+        68,
+        27,
+        96,
+        26,
+        18,
+        71,
+        58,
+        87,
+        4,
+        38,
+        72,
+        94,
+        23,
+        10,
+        14,
+        24,
+        86,
+        3,
+        74,
+        19,
+        51,
+        32,
+        67,
+        56,
+        43,
+        66,
+        25,
+        88,
+        91,
+        41,
+        59,
+        64,
+        60,
+        39,
+        40,
+        36,
+        49,
+        101,
+        80,
+        98,
+        102,
+        17,
+        22,
+        30,
+        57,
+        7,
+        47,
+        92,
+        44,
+        65,
+        75,
+        2,
+        62,
+        48,
+        45,
+        79,
+        81,
+        6,
+        21,
+        37,
+        78,
+        100,
+        84,
+        20,
+        83,
+        69,
+        8,
+        52,
+        1,
+        35,
+        33,
+        77,
+        34,
+        42,
+        29,
+        16,
+        0,
+        5,
+        13,
+        93,
+        70,
+        12,
+        50,
+        28,
+        15,
+        11,
+        85,
+        9,
+        99,
+        61,
+        97,
+        53
+      ]
+    }
+  ],
+  "neuron": [
+    {
+      "hoc": [
+        "stdgui.hoc",
+        "import3d.hoc",
+        "cell.hoc"
+      ]
+    }
+  ],
+  "manifest": [
+    {
+      "type": "dir",
+      "spec": ".",
+      "key": "BASEDIR"
+    },
+    {
+      "type": "dir",
+      "spec": "work",
+      "key": "WORKDIR",
+      "parent": "BASEDIR"
+    },
+    {
+      "type": "file",
+      "spec": "reconstruction.swc",
+      "key": "MORPHOLOGY"
+    },
+    {
+      "type": "file",
+      "spec": "reconstruction.marker",
+      "key": "MARKER"
+    },
+    {
+      "type": "dir",
+      "spec": "modfiles",
+      "key": "MODFILE_DIR"
+    },
+    {
+      "type": "file",
+      "format": "NWB",
+      "spec": "485838970_ephys.nwb",
+      "key": "stimulus_path"
+    },
+    {
+      "parent_key": "WORKDIR",
+      "type": "file",
+      "format": "NWB",
+      "spec": "485838970_ephys.nwb",
+      "key": "output_path"
+    }
+  ]
+}

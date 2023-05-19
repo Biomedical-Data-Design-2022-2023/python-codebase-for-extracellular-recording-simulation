@@ -3,6 +3,7 @@ import numpy as np
 import pickle as pkl
 import shutil
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 
 # MEArec
 import MEArec as mr
@@ -25,8 +26,12 @@ from scipy.optimize import linear_sum_assignment
 from scipy.sparse.linalg import svds
 from math import erf
 from sklearn.metrics.pairwise import cosine_similarity
+from scipy.special import softmax
 
 ####### temporal spike time/train comparison
+
+def firing_rate(recording,sorting):
+    return np.array([len(st) for st in get_spike_time_byUnitList(sorting)])/recording.get_total_duration()
 
 def get_spike_time_byUnitList(sorting_algo):
     """ transfer sorting to spike time list by unit
@@ -390,3 +395,266 @@ def cosine_similarity_matrix(template1,template2):
     template2_flat = template2.reshape(template2.shape[0], -1)
     score = cosine_similarity(template1_flat,template2_flat)
     return score
+
+############# plot
+
+def plot_precision_recall_vs_threshold(matrix_list,algo_list,log_axis=False,xlim=1e-3,ylim=1e-3):
+
+    if len(matrix_list) != len(algo_list):
+        raise ValueError('Illegal matrix_list or algo_list')
+
+    # guarantee diagmax
+    for i in range(len(matrix_list)):
+        matrix_list[i] = matrix_diagmax_sort(matrix_list[i])
+
+    N_GT = matrix_list[0].shape[0]
+
+    # Now use: 1. threshold; 2. diagmax
+    p = []
+    for matrix in matrix_list:
+        p.extend(matrix.flatten())
+    threshold_list = np.sort(np.unique(p))
+
+    precision_list = []
+    recall_list = []
+    for matrix in matrix_list:
+        
+        precision = []
+        recall = []
+
+        N = matrix.shape[1]
+        for th in threshold_list:
+            hotmap = matrix_diagmax_sort(matrix>=th)
+            matched = np.sum([hotmap[i,i] for i in range(np.min([hotmap.shape[0],hotmap.shape[1]]))])
+            TP = matched
+            FP = N-TP
+            FN = N_GT - TP
+
+            # precision = TP/(TP+FP)
+            precision.append(1.0*TP/(TP+FP))
+            # recall = TP/(TP+FN)
+            recall.append(1.0*TP/(TP+FN))
+
+        precision_list.append(precision)
+        recall_list.append(recall)
+
+    # define colors for plot
+    cmap = plt.get_cmap('hsv')
+    colors = [cmap(i) for i in np.linspace(0, 1, len(matrix_list)+1)]
+    patch_list = [mpatches.Patch(color=colors[i],label=algo_list[i]) for i in range(len(algo_list))]
+
+    # plot precision
+    plt.figure()
+    for algo_i in range(len(matrix_list)):
+
+        for i in range(len(precision_list[algo_i])):
+            if i == 0:
+                # depending on N and N_GT, precision at threshold=0 is different
+                start_value = 0
+                if matrix_list[algo_i].shape[1] <= N_GT:
+                    start_value = 1.0
+                else:
+                    start_value = 1.0*N_GT/matrix_list[algo_i].shape[1]
+
+                plt.plot([0,threshold_list[i]],[start_value,start_value],c=colors[algo_i])
+                plt.plot([threshold_list[i],threshold_list[i]],[start_value,precision_list[algo_i][i]],c=colors[algo_i])
+            elif i == len(precision_list[algo_i])-1:
+                plt.plot([threshold_list[i-1],threshold_list[i]],[precision_list[algo_i][i-1],precision_list[algo_i][i-1]],c=colors[algo_i])
+                plt.plot([threshold_list[i],threshold_list[i]],[precision_list[algo_i][i-1],precision_list[algo_i][i]],c=colors[algo_i])
+
+                plt.plot([threshold_list[i],1],[precision_list[algo_i][i],precision_list[algo_i][i]],c=colors[algo_i])
+                plt.plot([1,1],[precision_list[algo_i][i],0],c=colors[algo_i])
+            else:
+                plt.plot([threshold_list[i-1],threshold_list[i]],[precision_list[algo_i][i-1],precision_list[algo_i][i-1]],c=colors[algo_i])
+                plt.plot([threshold_list[i],threshold_list[i]],[precision_list[algo_i][i-1],precision_list[algo_i][i]],c=colors[algo_i])
+    
+    if log_axis:
+        plt.xlim([xlim,1.1])
+        plt.ylim([ylim,1.1])
+        plt.xscale('log')
+        plt.yscale('log')
+    else:
+        plt.xlim([0,1.1])
+        plt.ylim([0,1.1])
+    plt.xlabel('Threshold')
+    plt.ylabel('Precision')
+    plt.legend(handles=patch_list,loc='upper right')
+    plt.title('Precision vs Threshold')
+    plt.show()
+
+    # plot recall
+    plt.figure()
+    for algo_i in range(len(matrix_list)):
+
+        for i in range(len(recall_list[algo_i])):
+            if i == 0:
+                # depending on N and N_GT, recall at threshold=0 is different
+                start_value = 0
+                if matrix_list[algo_i].shape[1] <= N_GT:
+                    start_value = 1.0*matrix_list[algo_i].shape[0]/N_GT
+                else:
+                    start_value = 1
+
+                plt.plot([0,threshold_list[i]],[start_value,start_value],c=colors[algo_i])
+                plt.plot([threshold_list[i],threshold_list[i]],[start_value,recall_list[algo_i][i]],c=colors[algo_i])
+            elif i == len(precision_list[algo_i])-1:
+                plt.plot([threshold_list[i-1],threshold_list[i]],[recall_list[algo_i][i-1],recall_list[algo_i][i-1]],c=colors[algo_i])
+                plt.plot([threshold_list[i],threshold_list[i]],[recall_list[algo_i][i-1],recall_list[algo_i][i]],c=colors[algo_i])
+
+                plt.plot([threshold_list[i],1],[recall_list[algo_i][i],recall_list[algo_i][i]],c=colors[algo_i])
+                plt.plot([1,1],[recall_list[algo_i][i],0],c=colors[algo_i])
+            else:
+                plt.plot([threshold_list[i-1],threshold_list[i]],[recall_list[algo_i][i-1],recall_list[algo_i][i-1]],c=colors[algo_i])
+                plt.plot([threshold_list[i],threshold_list[i]],[recall_list[algo_i][i-1],recall_list[algo_i][i]],c=colors[algo_i])
+
+    if log_axis:
+        plt.xlim([xlim,1.1])
+        plt.ylim([ylim,1.1])
+        plt.xscale('log')
+        plt.yscale('log')
+    else:
+        plt.xlim([0,1.1])
+        plt.ylim([0,1.1])
+    plt.xlabel('Threshold')
+    plt.ylabel('Recall')
+    plt.legend(handles=patch_list,loc='upper right')
+    plt.title('Recall vs Threshold')
+    plt.show()
+
+def plot_TP_vs_FP(matrix_list,algo_list):
+
+    if len(matrix_list) != len(algo_list):
+        raise ValueError('Illegal matrix_list or algo_list')
+
+    N_GT = matrix_list[0].shape[0]
+
+    p = []
+    for matrix in matrix_list:
+        p.extend(matrix.flatten())
+    threshold_list = np.sort(np.unique(p))
+
+    TP_list = []
+    FP_list = []
+    for matrix in matrix_list:
+        
+        TP = []
+        FP = []
+
+        # N = matrix.shape[1]
+        for th in threshold_list:
+            # guarantee diagmax
+            hotmap = matrix_diagmax_sort(matrix>=th)
+            matched = np.sum([hotmap[i,i] for i in range(np.min([hotmap.shape[0],hotmap.shape[1]]))])
+            TP.append(matched)
+            P = np.sum(np.sum(hotmap,axis=0)>0)
+            FP.append(P-matched)
+
+        TP_list.append(TP)
+        FP_list.append(FP)
+
+    # define colors for plot
+    cmap = plt.get_cmap('hsv')
+    colors = [cmap(i) for i in np.linspace(0, 1, len(matrix_list)+1)]
+    patch_list = [mpatches.Patch(color=colors[i],label=algo_list[i]) for i in range(len(algo_list))]
+
+    # plot
+    plt.figure()
+    for algo_i in range(len(matrix_list)):
+        plt.plot(FP_list[algo_i],TP_list[algo_i],c=colors[algo_i])
+    
+    plt.xlabel('# false positive')
+    plt.ylabel('# true positive')
+    plt.legend(handles=patch_list,loc='lower right')
+    plt.title('True Positive vs False Positive')
+    plt.show()
+
+def plot_unit_category_count(matrix_list,algo_list,th=0.4):
+    """plot # unit count in 4 categories:
+    Well-matched: matched, only 1 agreement >= th  
+    FP: all agreement < th 
+    Redundant: unmatched, with only 1 agreement > th
+    Overmerged: 2 or more agreement > th
+
+    Args:
+        matrix_list (list): matrix list of algos
+        algo_list (list): list of algo name
+        th (float, optional): threshold. Defaults to 0.4.
+
+    Raises:
+        ValueError: len(matrix_list) != len(algo_list)
+    """    
+
+    if len(matrix_list) != len(algo_list):
+        raise ValueError('Illegal matrix_list or algo_list')
+
+    N_GT = matrix_list[0].shape[0]
+
+    # category
+    Matched = np.zeros(len(algo_list))
+    False_positive = np.zeros(len(algo_list))
+    Over_split = np.zeros(len(algo_list))
+    Over_merged = np.zeros(len(algo_list))
+
+    for i_algo,matrix in enumerate(matrix_list):
+        hotmap = matrix_diagmax_sort(matrix>=th)
+        
+        for i_unit in range(hotmap.shape[1]):
+            # false positive
+            if np.sum(hotmap[:,i_unit]) == 0:
+                False_positive[i_algo] = False_positive[i_algo] + 1
+                continue
+
+            # matched
+            if i_unit < N_GT and np.sum(hotmap[:,i_unit]) == 1:
+                Matched[i_algo] = Matched[i_algo] + 1
+                continue
+
+            # over split
+            if i_unit >= N_GT and np.sum(hotmap[:,i_unit]) == 1:
+                Over_split[i_algo] = Over_split[i_algo] + 1
+                continue
+
+            # over merged
+            if np.sum(hotmap[:,i_unit]) >= 2:
+                Over_merged[i_algo] = Over_merged[i_algo] + 1
+                continue
+
+    # plot
+    X_axis = np.arange(len(algo_list))
+
+    plt.figure()
+    plt.bar(X_axis-0.3,Matched,width=0.2,label = 'Well-matched')
+    plt.bar(X_axis-0.1,False_positive,width=0.2,label = 'False positive')
+    plt.bar(X_axis+0.1,Over_split,width=0.2,label = 'Redundant')
+    plt.bar(X_axis+0.3,Over_merged,width=0.2,label = 'Over-merged')
+    plt.plot([-1,np.max(X_axis)+1],[N_GT,N_GT],'k--')
+
+    plt.xticks(X_axis,algo_list)
+    plt.xlabel("Spike sorting algorithm")
+    plt.ylabel("# units")
+    plt.legend()
+    plt.show()
+
+######## template SNR 
+def template_SNR(recording,templates):
+    """compute SNR for every template in the group of templates, 
+    define SNR as 20*log10(max_abs_peak_template_amplitude/std_of_max_peak_channel)
+
+    Args:
+        recording (): recording data from se.read_mearec()
+        templates (ndarray): (N,ch,T)
+
+    Returns:
+        array: SNR, (N)
+    """    
+
+    noise_channel = np.std(recording.get_traces(),axis=0)
+    signal_level = np.max(np.max(np.abs(templates),axis=-1),axis=-1)
+    max_channel = np.argmax(np.max(np.abs(templates),axis=-1),axis=-1)
+
+    SNR = []
+    for i in range(signal_level.shape[0]):
+        if signal_level[i] != 0: # ignore 0 signal
+            SNR.append(20*np.log10(signal_level[i]/noise_channel[int(max_channel[i])]))
+
+    return np.array(SNR)
