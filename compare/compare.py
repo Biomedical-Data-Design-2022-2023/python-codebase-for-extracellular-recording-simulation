@@ -476,10 +476,12 @@ def plot_precision_recall_vs_threshold(matrix_list,algo_list,log_axis=False,xlim
     else:
         plt.xlim([0,1.1])
         plt.ylim([0,1.1])
-    plt.xlabel('Threshold')
-    plt.ylabel('Precision')
+    plt.xlabel('Threshold',fontsize=20)
+    plt.ylabel('Precision',fontsize=20)
+    plt.xticks(fontsize=20)
+    plt.yticks(fontsize=20)
     plt.legend(handles=patch_list,loc='upper right')
-    plt.title('Precision vs Threshold')
+    plt.title('Precision vs Threshold',fontsize=20)
     plt.show()
 
     # plot recall
@@ -515,10 +517,12 @@ def plot_precision_recall_vs_threshold(matrix_list,algo_list,log_axis=False,xlim
     else:
         plt.xlim([0,1.1])
         plt.ylim([0,1.1])
-    plt.xlabel('Threshold')
-    plt.ylabel('Recall')
+    plt.xlabel('Threshold',fontsize=20)
+    plt.ylabel('Recall',fontsize=20)
+    plt.xticks(fontsize=20)
+    plt.yticks(fontsize=20)
     plt.legend(handles=patch_list,loc='upper right')
-    plt.title('Recall vs Threshold')
+    plt.title('Recall vs Threshold',fontsize=20)
     plt.show()
 
 def plot_TP_vs_FP(matrix_list,algo_list):
@@ -562,10 +566,12 @@ def plot_TP_vs_FP(matrix_list,algo_list):
     for algo_i in range(len(matrix_list)):
         plt.plot(FP_list[algo_i],TP_list[algo_i],c=colors[algo_i])
     
-    plt.xlabel('# false positive')
-    plt.ylabel('# true positive')
+    plt.xlabel('# False positive',fontsize=20)
+    plt.ylabel('# true positive',fontsize=20)
+    plt.xticks(fontsize=20)
+    plt.yticks(fontsize=20)
     plt.legend(handles=patch_list,loc='lower right')
-    plt.title('True Positive vs False Positive')
+    plt.title('True Positive vs False Positive',fontsize=20)
     plt.show()
 
 def plot_unit_category_count(matrix_list,algo_list,th=0.4):
